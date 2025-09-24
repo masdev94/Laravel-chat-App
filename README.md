@@ -1,8 +1,6 @@
 Laravel + soketi = <3
 =====================
 
-![demo](demo.png)
-
 A small Laravel Chat app demo for soketi. 📡
 
 ## Installing the project
