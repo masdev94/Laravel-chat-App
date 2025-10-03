@@ -2,23 +2,17 @@
 
 namespace App\Events;
 
-use App\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class Message implements ShouldBroadcastNow
+class AIMessage implements ShouldBroadcastNow
 {
     use Dispatchable;
     use InteractsWithSockets;
     use SerializesModels;
-
-    /**
-     * @var \App\Models\User
-     */
-    protected $user;
 
     /**
      * @var string
@@ -31,18 +25,26 @@ class Message implements ShouldBroadcastNow
     protected $message;
 
     /**
+     * @var array
+     */
+    protected $aiUser;
+
+    /**
      * Create a new event instance.
      *
-     * @param  \App\Models\User  $user
-     * @param  string  $room
-     * @param  string  $message
+     * @param string $room
+     * @param string $message
      * @return void
      */
-    public function __construct(User $user, string $room, string $message)
+    public function __construct(string $room, string $message)
     {
-        $this->user = $user;
         $this->room = $room;
         $this->message = $message;
+        $this->aiUser = [
+            'id' => 'ai',
+            'name' => 'AI Assistant',
+            'is_ai' => true,
+        ];
     }
 
     /**
@@ -63,9 +65,9 @@ class Message implements ShouldBroadcastNow
     public function broadcastWith()
     {
         return [
-            'user' => $this->user->only('id', 'name'),
+            'user' => $this->aiUser,
             'message' => $this->message,
-            'is_ai_message' => false,
+            'is_ai_message' => true,
         ];
     }
 
@@ -77,5 +79,17 @@ class Message implements ShouldBroadcastNow
     public function broadcastAs()
     {
         return 'room.message';
+    }
+
+    /**
+     * Broadcast the AI message
+     *
+     * @param string $room
+     * @param string $message
+     * @return void
+     */
+    public static function broadcast(string $room, string $message): void
+    {
+        broadcast(new static($room, $message));
     }
 }

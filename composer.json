@@ -13,6 +13,7 @@
         "laravel/framework": "^8.65",
         "laravel/sanctum": "^2.6",
         "laravel/tinker": "^2.5",
+        "openai-php/client": "^0.16.1",
         "pusher/pusher-php-server": "^7.0",
         "tightenco/ziggy": "^1.0"
     },
@@ -60,7 +61,10 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

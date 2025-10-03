@@ -8,7 +8,7 @@
                         <div class="flex">
                             <!-- Logo -->
                             <div class="flex-shrink-0 flex items-center">
-                                <Link :href="route('dashboard')">
+                                <Link :href="route('ai.rooms.index')">
                                     <BreezeApplicationLogo class="block h-9 w-auto" />
                                 </Link>
                             </div>
@@ -16,10 +16,16 @@
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                                 <BreezeNavLink
-                                    :href="route('dashboard')"
-                                    :active="route().current('dashboard')"
+                                    :href="route('ai.rooms.index')"
+                                    :active="route().current('ai.rooms.*')"
                                 >
-                                    Dashboard
+                                    AI Rooms
+                                </BreezeNavLink>
+                                <BreezeNavLink
+                                    :href="route('chat.room', { room: 'general' })"
+                                    :active="route().current('chat.room')"
+                                >
+                                    Chat Rooms
                                 </BreezeNavLink>
                             </div>
                         </div>
@@ -107,10 +113,16 @@
                 >
                     <div class="pt-2 pb-3 space-y-1">
                         <BreezeResponsiveNavLink
-                            :href="route('dashboard')"
-                            :active="route().current('dashboard')"
+                            :href="route('ai.rooms.index')"
+                            :active="route().current('ai.rooms.*')"
                         >
-                            Dashboard
+                            AI Rooms
+                        </BreezeResponsiveNavLink>
+                        <BreezeResponsiveNavLink
+                            :href="route('chat.room', { room: 'general' })"
+                            :active="route().current('chat.room')"
+                        >
+                            Chat Rooms
                         </BreezeResponsiveNavLink>
                     </div>
 

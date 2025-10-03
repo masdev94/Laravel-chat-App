@@ -34,5 +34,8 @@
         "vue": "^3.0.5",
         "vue-eslint-parser": "^8.0.1",
         "vue-loader": "^16.1.2"
+    },
+    "dependencies": {
+        "ziggy-js": "^2.6.0"
     }
 }

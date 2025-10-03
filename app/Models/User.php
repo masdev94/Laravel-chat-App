@@ -42,4 +42,20 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Get the AI rooms for the user.
+     */
+    public function aiRooms()
+    {
+        return $this->hasMany(AIRoom::class);
+    }
+
+    /**
+     * Get the AI chat history for the user.
+     */
+    public function aiChatHistory()
+    {
+        return $this->hasMany(AIChatHistory::class);
+    }
 }
