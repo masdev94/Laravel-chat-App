@@ -42,10 +42,11 @@ class SendMessageController extends Controller
         $aiEnabled = isset($aiRooms[$request->room]);
 
         if ($aiEnabled && $this->openAIService->isMessageForAI($request->message)) {
-            // Dispatch AI response job (async)
+            // Dispatch AI response job (async) with user ID for history tracking
             ProcessAIResponse::dispatch(
                 $request->message,
                 $request->room,
+                $request->user()->id,
                 [] // Context can be enhanced later
             );
         }

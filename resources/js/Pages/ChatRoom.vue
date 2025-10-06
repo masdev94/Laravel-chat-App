@@ -30,6 +30,57 @@
                             @ai-toggled="onAIToggled"
                         />
 
+                        <!-- Chat History Panel -->
+                        <div v-if="aiEnabled" class="bg-white shadow-sm sm:rounded-lg">
+                            <div class="px-4 py-3 border-b border-gray-200">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-sm font-medium text-gray-900">🤖 AI Chat History</h3>
+                                    <button
+                                        @click="toggleHistoryPanel"
+                                        class="text-xs text-blue-600 hover:text-blue-700"
+                                    >
+                                        {{ showHistory ? 'Hide' : 'Show' }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div v-if="showHistory" class="p-3">
+                                <div class="space-y-2 mb-3">
+                                    <button
+                                        @click="loadChatHistory"
+                                        :disabled="loadingHistory"
+                                        class="w-full text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-1 rounded transition-colors disabled:opacity-50"
+                                    >
+                                        {{ loadingHistory ? 'Loading...' : 'Refresh History' }}
+                                    </button>
+                                    <button
+                                        @click="clearChatHistory"
+                                        :disabled="clearingHistory || chatHistory.length === 0"
+                                        class="w-full text-xs bg-red-50 hover:bg-red-100 text-red-700 px-2 py-1 rounded transition-colors disabled:opacity-50"
+                                    >
+                                        {{ clearingHistory ? 'Clearing...' : 'Clear History' }}
+                                    </button>
+                                </div>
+
+                                <div class="max-h-40 overflow-y-auto">
+                                    <div v-if="chatHistory.length === 0" class="text-xs text-gray-500 text-center py-2">
+                                        No AI chat history yet
+                                    </div>
+                                    <div
+                                        v-for="entry in chatHistory.slice(-5)"
+                                        :key="entry.id"
+                                        class="text-xs space-y-1 mb-3 p-2 bg-gray-50 rounded"
+                                    >
+                                        <div class="font-medium text-gray-700">You:</div>
+                                        <div class="text-gray-600">{{ entry.user_message }}</div>
+                                        <div class="font-medium text-blue-700">AI:</div>
+                                        <div class="text-blue-600">{{ entry.ai_response }}</div>
+                                        <div class="text-gray-400 text-xs">{{ formatDate(entry.created_at) }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Users List -->
                         <div class="bg-white shadow-sm sm:rounded-lg">
                             <div class="px-4 py-3 border-b border-gray-200">
@@ -140,7 +191,8 @@
                                     </button>
                                 </div>
                                 <div v-if="aiEnabled" class="mt-2 text-xs text-gray-500">
-                                    💡 Tip: Start with <code class="bg-gray-100 px-1 rounded">@ai</code> to talk to the AI assistant
+                                    💡 Tip: Start with <code class="bg-gray-100 px-1 rounded">@ai</code> to talk to the AI assistant.
+                                    <span class="text-blue-600">AI remembers your conversation history!</span>
                                 </div>
                             </div>
                         </div>
@@ -183,6 +235,10 @@ export default {
             aiEnabled: this.ai_enabled || false,
             aiTyping: false,
             sendingMessage: false,
+            showHistory: false,
+            chatHistory: [],
+            loadingHistory: false,
+            clearingHistory: false,
         };
     },
 
@@ -226,6 +282,7 @@ export default {
             this.systemMessage('Welcome to the chat room! You can now start chatting.');
             if (this.aiEnabled) {
                 this.systemMessage('AI Assistant is enabled. Use @ai to interact with it.');
+                this.systemMessage('🧠 New: AI now remembers your conversation history for better context!');
             }
         },
 
@@ -304,10 +361,66 @@ export default {
             this.aiEnabled = enabled;
             if (enabled) {
                 this.systemMessage('AI Assistant has been enabled for this room.');
+                // Load chat history when AI is enabled
+                this.loadChatHistory();
             } else {
                 this.systemMessage('AI Assistant has been disabled for this room.');
                 this.aiTyping = false;
+                this.showHistory = false;
+                this.chatHistory = [];
             }
+        },
+
+        toggleHistoryPanel() {
+            this.showHistory = !this.showHistory;
+            if (this.showHistory && this.chatHistory.length === 0) {
+                this.loadChatHistory();
+            }
+        },
+
+        async loadChatHistory() {
+            if (!this.aiEnabled) return;
+
+            this.loadingHistory = true;
+            try {
+                const response = await axios.get(this.route('chat.history.get', { room: this.room }));
+                this.chatHistory = response.data.history;
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+                this.errorMessage('Failed to load chat history.');
+            } finally {
+                this.loadingHistory = false;
+            }
+        },
+
+        async clearChatHistory() {
+            if (!this.aiEnabled || this.chatHistory.length === 0) return;
+
+            if (!confirm('Are you sure you want to clear your AI chat history for this room? This action cannot be undone.')) {
+                return;
+            }
+
+            this.clearingHistory = true;
+            try {
+                await axios.delete(this.route('chat.history.clear', { room: this.room }));
+                this.chatHistory = [];
+                this.systemMessage('AI chat history has been cleared.');
+            } catch (error) {
+                console.error('Error clearing chat history:', error);
+                this.errorMessage('Failed to clear chat history.');
+            } finally {
+                this.clearingHistory = false;
+            }
+        },
+
+        formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         },
 
         scrollToBottom() {

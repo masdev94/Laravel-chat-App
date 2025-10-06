@@ -4,6 +4,7 @@ use App\Http\Controllers\AIController;
 use App\Http\Controllers\AIMessageController;
 use App\Http\Controllers\AIRoomController;
 use App\Http\Controllers\ChatRoomController;
+use App\Http\Controllers\ChatHistoryController;
 use App\Http\Controllers\SendMessageController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
     Route::get('/chat/{room?}', ChatRoomController::class)->name('chat.room');
     Route::post('/message', SendMessageController::class)->name('send.message');
+
+    // Chat history for general rooms
+    Route::prefix('chat-history')->name('chat.history.')->group(function () {
+        Route::get('/{room}', [ChatHistoryController::class, 'getHistory'])->name('get');
+        Route::delete('/{room}', [ChatHistoryController::class, 'clearHistory'])->name('clear');
+        Route::get('/', [ChatHistoryController::class, 'getRoomsWithHistory'])->name('rooms');
+    });
 
     // AI chat rooms
     Route::prefix('ai')->name('ai.')->group(function () {

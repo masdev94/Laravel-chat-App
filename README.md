@@ -14,8 +14,10 @@ An advanced Laravel chat application featuring dual chat systems: traditional mu
 ### 💬 Traditional Chat Rooms  
 - **Multi-user Rooms**: Real-time group conversations
 - **Optional AI Integration**: Toggle AI assistant in any room with trigger words
+- **Persistent AI Memory**: AI remembers conversation history for contextual responses
 - **Online User Tracking**: See who's currently in each room
 - **Shareable Links**: Easy room sharing
+- **Chat History Management**: View and clear AI conversation history per room
 
 ### 🛠 Technical Features
 - **Modern Stack**: Laravel 8 + Vue.js 3 + Inertia.js + Tailwind CSS
@@ -137,7 +139,11 @@ php artisan queue:work
 1. **Join Room**: Navigate to any chat room (e.g., "general")
 2. **Enable AI** (optional): Click the AI toggle to activate assistant
 3. **Trigger AI**: Use `@ai`, `@bot`, or `ai:` to interact with the assistant
-4. **Group Chat**: Chat with other users in real-time
+4. **View History**: AI chat history panel shows your conversation context
+5. **Manage History**: Refresh or clear your AI conversation history
+6. **Group Chat**: Chat with other users in real-time
+
+**New AI Memory Feature**: The AI now remembers your previous conversations in each room, providing better context and continuity across sessions!
 
 ## 🤖 AI Features Deep Dive
 
@@ -162,7 +168,7 @@ Choose from 5 specialized AI personalities, each optimized for different use cas
 
 ### Traditional Chat AI Integration
 
-For traditional chat rooms, AI integration is optional and trigger-based:
+For traditional chat rooms, AI integration now includes persistent memory:
 
 **AI Triggers:**
 - `@ai your message here`
@@ -174,8 +180,16 @@ For traditional chat rooms, AI integration is optional and trigger-based:
 **How it works:**
 1. Enable AI toggle in any chat room
 2. Use trigger words in your messages
-3. AI responds contextually to the conversation
-4. Other users see both your message and AI response
+3. AI responds contextually using conversation history
+4. AI remembers your previous interactions in each room
+5. View and manage your chat history in the sidebar
+6. Other users see both your message and AI response
+
+**History Features:**
+- 📚 **Persistent Memory**: AI remembers up to 8 recent conversations per room
+- 🔄 **History Panel**: View your recent AI interactions
+- 🗑️ **Clear History**: Remove conversation history when needed
+- 📱 **Per-Room Storage**: Each room maintains separate chat history
 
 ### Technical AI Features
 
@@ -242,6 +256,9 @@ php artisan serve    # Start development server
 php artisan queue:work  # Start queue worker for AI processing
 php artisan migrate  # Run database migrations
 php artisan db:seed  # Seed database with test data
+
+# New: Chat history management
+php artisan db:seed --class=ChatHistorySeeder  # Seed sample chat history
 
 # Code quality
 vendor/bin/php-cs-fixer fix  # Fix PHP code style

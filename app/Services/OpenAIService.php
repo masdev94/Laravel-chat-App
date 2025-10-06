@@ -97,6 +97,7 @@ class OpenAIService
     protected function buildSystemPrompt(string $room, array $context = []): string
     {
         $basePrompt = "You are a helpful AI assistant participating in a chat room called '{$room}'. ";
+        $basePrompt .= "You have access to the conversation history and can reference previous discussions for better context. ";
         $basePrompt .= "Keep your responses friendly, conversational, and under 140 characters. ";
         $basePrompt .= "You can discuss any topic and help answer questions. ";
 
@@ -104,7 +105,7 @@ class OpenAIService
             $basePrompt .= "Here's some recent chat context: " . implode(' ', $context) . " ";
         }
 
-        $basePrompt .= "Respond naturally as if you're part of the conversation.";
+        $basePrompt .= "Respond naturally as if you're part of the conversation, and feel free to reference previous topics when relevant.";
 
         return $basePrompt;
     }
@@ -198,6 +199,70 @@ class OpenAIService
         ];
 
         return $prompts[$personality] ?? $prompts['helpful_assistant'];
+    }
+
+    /**
+     * Generate AI response with conversation history for general chat rooms
+     *
+     * @param string $message
+     * @param string $roomName
+     * @param int $userId
+     * @param array $context
+     * @return string|null
+     */
+    public function generateChatResponseWithHistory(string $message, string $roomName, int $userId, array $context = []): ?string
+    {
+        try {
+            // Get recent chat history for this user in this room
+            $history = \App\Models\ChatHistory::getRecentHistoryForRoom($roomName, $userId, 8);
+
+            // Build messages array with history
+            $messages = [];
+
+            // System prompt
+            $messages[] = ['role' => 'system', 'content' => $this->buildSystemPrompt($roomName, $context)];
+
+            // Add conversation history
+            foreach ($history as $chat) {
+                $messages[] = ['role' => 'user', 'content' => $chat->user_message];
+                $messages[] = ['role' => 'assistant', 'content' => $chat->ai_response];
+            }
+
+            // Add current message
+            $messages[] = ['role' => 'user', 'content' => $message];
+
+            $response = $this->client->chat()->create([
+                'model' => $this->model,
+                'messages' => $messages,
+                'max_tokens' => 150,
+                'temperature' => 0.7,
+            ]);
+
+            return $response->choices[0]->message->content ?? null;
+        } catch (Exception $e) {
+            Log::error('OpenAI API Error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Save chat interaction to general chat history
+     *
+     * @param int $userId
+     * @param string $roomName
+     * @param string $userMessage
+     * @param string $aiResponse
+     * @return void
+     */
+    public function saveChatHistoryForRoom(int $userId, string $roomName, string $userMessage, string $aiResponse): void
+    {
+        \App\Models\ChatHistory::createEntry(
+            $userId,
+            $roomName,
+            $userMessage,
+            $aiResponse,
+            $this->model
+        );
     }
 
     /**
